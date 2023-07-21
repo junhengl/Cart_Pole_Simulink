@@ -1,0 +1,48 @@
+%% Data:
+fileName = {'data_45deg.mat', 'data_30deg.mat', ...
+    'data_15deg.mat'};
+
+% training:
+trainingData = [];
+for i = 1:2
+    currentData = [];
+    load(fileName{i});
+    currentData = [out.state_data, ...
+        out.control_input_data];
+    trainingData = [trainingData; currentData];
+end
+
+% validation:
+validationData = [];
+currentData = [];
+load(fileName{3});
+currentData = [out.state_data, ...
+    out.control_input_data];
+validationData = currentData; 
+
+%% Setup:
+numInput = 1;
+numResponses = 1;
+
+% LSTM:
+numHiddenUnits = 100;
+layers = [ ...
+    sequenceInputLayer(numInput, Normalization="zscore")
+    lstmLayer(numHiddenUnits, OutputMode="last")
+    fullyConnectedLayer(numResponses)
+    regressionLayer];
+
+options = trainingOptions("adam", ...
+    MaxEpochs=250, ...
+    ValidationData= ...
+    {num2cell(validationData(:,1:4),2)...
+    validationData(:,5)}, ...
+    OutputNetwork="best-validation-loss", ...
+    InitialLearnRate=0.005, ...
+    SequenceLength="shortest", ...
+    Plots="training-progress", ...
+    Verbose= false);
+
+policy = trainNetwork(trainingData(:,1:4),...
+    trainingData(:,5), layers, options);
+

@@ -13,11 +13,17 @@ joint_damping = 1e-5;
 %% cart-pole initial condition
 x_0 = 0;
 y_0 = 0.125;
-q_0 = 45; %degree
+q_0 = 35; %degree 15 30 45 ...
 
 %% Controllers
-LQR = 1;
+LQR = 0;
+LSTM = 1;
 
 if LQR
     K_LQR = cartPoleLQR
+end
+
+if LSTM 
+    load("LSTMPolicy.mat");
+    global policy
 end
